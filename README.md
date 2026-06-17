@@ -196,6 +196,27 @@ If you changed `CTID`, replace `120` with your container ID.
 | qBittorrent, optional | 8081 |
 | Autobrr, optional | 7474 |
 
+## Troubleshooting
+
+### Seerr will not open or fails to start
+
+If the other apps open but Seerr does not, it is usually a permissions issue with the Seerr config directory.
+
+The current script automatically prepares the Seerr config directory before first startup. If you need to repair an existing deployment manually, run:
+
+```bash
+pct exec 120 -- bash -lc 'mkdir -p /opt/media-stack/config/seerr && chown -R 1000:1000 /opt/media-stack/config/seerr'
+pct exec 120 -- bash -lc 'cd /opt/media-stack && docker compose restart seerr'
+```
+
+Then open:
+
+```text
+http://YOUR-LXC-IP:5055
+```
+
+If you changed `CTID`, replace `120` with your container ID.
+
 ## Removing a failed test container
 
 If a test run fails and you want to start clean, remove the container with:
