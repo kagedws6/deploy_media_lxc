@@ -1,23 +1,6 @@
 # deploy_media_lxc
 
-A configurable Proxmox LXC deployment script for spinning up a self-hosted media automation stack with Docker Compose.
-
-## Included apps
-
-- Sonarr
-- Radarr
-- Prowlarr
-- SABnzbd
-- Seerr
-- Lidarr
-- Bazarr
-- LazyLibrarian
-- Kavita
-- Audiobookshelf
-
-Optional toggles are included for qBittorrent, Gluetun, and Autobrr.
-
-> This script is intended for homelab use. Review the script before running it, especially storage paths, LXC ID, privileged container settings, and VPN-related options.
+Configurable Proxmox LXC deployment scripts for spinning up a self-hosted homelab media and utility stack with Docker Compose.
 
 ## Available scripts
 
@@ -28,6 +11,9 @@ Optional toggles are included for qBittorrent, Gluetun, and Autobrr.
 | `deploy-reverse-proxy-lxc.sh` | 140 | Reverse proxy / ingress | Nginx Proxy Manager |
 | `deploy-management-lxc.sh` | 150 | Docker management and logs | Portainer, Dozzle |
 | `deploy-security-lxc.sh` | 160 | DNS blocking and password vault | AdGuard Home, Vaultwarden |
+| `apply-static-ip-support.sh` | n/a | Helper that patches the deploy scripts to add optional static IP settings | n/a |
+| `homepage-services.yaml` | n/a | Ready-to-use Homepage dashboard services file for the generated stack | n/a |
+| `install-homepage-services.sh` | n/a | Copies `homepage-services.yaml` into CT 130 and restarts Homepage | n/a |
 
 Some apps are included but disabled by default because they require extra secrets, port planning, or device passthrough:
 
@@ -37,55 +23,48 @@ Some apps are included but disabled by default because they require extra secret
 - Watchtower in the management script
 - Pi-hole in the security script
 
-## How to use
+> These scripts are intended for homelab use. Review each script before running it, especially storage paths, LXC IDs, privileged container settings, static IP settings, and VPN-related options.
 
-These steps are meant to be run from the **main Proxmox host console**, not from inside an LXC container or VM.
+## Quick download from Proxmox
 
-### 1. Open the Proxmox host shell
-
-In the Proxmox web interface:
-
-1. Select your Proxmox node in the left sidebar.
-2. Click **Shell**.
-3. Make sure you are at the Proxmox host prompt.
-
-You can also connect over SSH:
+Run these from the Proxmox host shell:
 
 ```bash
-ssh root@YOUR-PROXMOX-IP
+curl -fsSL -O https://raw.githubusercontent.com/kagedws6/deploy_media_lxc/main/deploy-media-lxc.sh
+curl -fsSL -O https://raw.githubusercontent.com/kagedws6/deploy_media_lxc/main/deploy-monitoring-lxc.sh
+curl -fsSL -O https://raw.githubusercontent.com/kagedws6/deploy_media_lxc/main/deploy-reverse-proxy-lxc.sh
+curl -fsSL -O https://raw.githubusercontent.com/kagedws6/deploy_media_lxc/main/deploy-management-lxc.sh
+curl -fsSL -O https://raw.githubusercontent.com/kagedws6/deploy_media_lxc/main/deploy-security-lxc.sh
+chmod +x deploy-*.sh
 ```
 
-### 2. Create the script file
+Or clone the repo:
 
-Create a new script file with `nano`:
+```bash
+apt update
+apt install -y git
+git clone https://github.com/kagedws6/deploy_media_lxc.git
+cd deploy_media_lxc
+chmod +x *.sh
+```
+
+## Basic use
+
+1. Download or clone the repo on the Proxmox host.
+2. Edit the script you want to run.
+3. Review `CTID`, storage names, disk size, bridge, timezone, app toggles, and paths.
+4. Make it executable with `chmod +x script-name.sh`.
+5. Run it from the Proxmox host shell.
+
+Example:
 
 ```bash
 nano deploy-media-lxc.sh
+chmod +x deploy-media-lxc.sh
+./deploy-media-lxc.sh
 ```
 
-For one of the utility stacks, use that script name instead, for example:
-
-```bash
-nano deploy-monitoring-lxc.sh
-```
-
-### 3. Paste the script contents
-
-Paste the full contents of the script into the nano editor.
-
-After pasting, save and exit:
-
-```text
-CTRL + O
-ENTER
-CTRL + X
-```
-
-### 4. Review and adjust the settings
-
-Before running the script, review the settings near the top of the file.
-
-Common values to check:
+## Common settings to review
 
 ```bash
 CTID="120"
@@ -101,7 +80,7 @@ IP_CONFIG="dhcp"
 TZ="America/New_York"
 ```
 
-The media script also includes host bind-mount paths:
+Media script storage paths:
 
 ```bash
 HOST_MEDIA_PATH="/mnt/media"
@@ -115,13 +94,50 @@ Important notes:
 - `DISK_SIZE` should be a plain number, such as `64`, not `64G`.
 - `HOST_MEDIA_PATH` and `HOST_DOWNLOADS_PATH` should point to storage paths on the Proxmox host.
 
-You can check your available Proxmox storage names with:
+Check Proxmox storage names with:
 
 ```bash
 pvesm status
 ```
 
-### 5. Enable or disable apps
+## Optional static IP support
+
+The repo includes `apply-static-ip-support.sh`, which patches all deploy scripts so they can use either DHCP or static IPs.
+
+Run this from the repo directory:
+
+```bash
+chmod +x apply-static-ip-support.sh
+./apply-static-ip-support.sh
+```
+
+After running it, each deploy script gets a section like this near the top:
+
+```bash
+# Optional static IP settings
+# Leave USE_STATIC_IP="0" for DHCP. Set to "1" to use STATIC_IP.
+USE_STATIC_IP="0"
+STATIC_IP="192.168.1.120/24"
+GATEWAY="192.168.1.1"
+DNS_SERVER="1.1.1.1"
+SEARCH_DOMAIN="local"
+```
+
+To use static IPs, change `USE_STATIC_IP="0"` to `USE_STATIC_IP="1"` and adjust the address before running the deploy script.
+
+Default static IP suggestions:
+
+| Stack | Suggested static IP |
+|---|---|
+| Media | `192.168.1.120/24` |
+| Monitoring | `192.168.1.130/24` |
+| Reverse proxy | `192.168.1.140/24` |
+| Management | `192.168.1.150/24` |
+| Security | `192.168.1.160/24` |
+
+Do not use an address that is already assigned on your network.
+
+## Enable or disable apps
 
 Each script has app toggles near the top.
 
@@ -132,12 +148,7 @@ ENABLE_SONARR="1"
 ENABLE_RADARR="1"
 ENABLE_SABNZBD="1"
 ENABLE_SEERR="1"
-```
-
-Optional apps are usually disabled by default when they need extra setup:
-
-```bash
-ENABLE_GLUTEN="0"
+ENABLE_GLUTUN="0"
 ENABLE_CLOUDFLARED="0"
 ENABLE_WATCHTOWER="0"
 ENABLE_SCRUTINY="0"
@@ -145,91 +156,47 @@ ENABLE_SCRUTINY="0"
 
 > Gluetun requires VPN-specific configuration before it should be enabled. Cloudflared requires a tunnel token. Scrutiny requires host disk/S.M.A.R.T. device passthrough. Watchtower can auto-update containers, so enable it carefully.
 
-### 6. Make the script executable
+## Homepage dashboard setup
 
-Run:
+The repo includes a ready-made Homepage services file based on this stack:
 
-```bash
-chmod +x deploy-media-lxc.sh
+```text
+homepage-services.yaml
 ```
 
-For a utility stack, use that filename instead:
+To install it into the monitoring stack, run this from the repo directory on the Proxmox host:
 
 ```bash
-chmod +x deploy-monitoring-lxc.sh
+chmod +x install-homepage-services.sh
+./install-homepage-services.sh
 ```
 
-### 7. Run the script
+By default, this copies `homepage-services.yaml` into CT `130` at:
 
-Run:
-
-```bash
-./deploy-media-lxc.sh
+```text
+/opt/monitoring-stack/config/homepage/services.yaml
 ```
 
-Or for a utility stack:
+Then it restarts the Homepage container.
 
-```bash
-./deploy-monitoring-lxc.sh
+Open Homepage at:
+
+```text
+http://MONITORING-LXC-IP:3000
 ```
 
-The script will:
+For Patrick's current test deployment, the dashboard entries use these addresses:
 
-1. Download a Debian LXC template if needed.
-2. Create the Proxmox LXC container.
-3. Install Docker and Docker Compose inside the LXC.
-4. Generate a Docker Compose file based on the enabled app toggles.
-5. Pull and start the selected containers.
-6. Print the web UI links at the end.
+| Stack | IP |
+|---|---|
+| Media | `192.168.1.254` |
+| Monitoring | `192.168.1.184` |
+| Reverse proxy | `192.168.1.225` |
+| Management | `192.168.1.208` |
+| Security | `192.168.1.245` |
+| Proxmox host | `192.168.1.102` |
 
-The media script also adds media and downloads bind mounts.
-
-### 8. View the deployment log
-
-Each script writes a log file on the Proxmox host.
-
-Examples:
-
-```bash
-cat /root/deploy-media-lxc-120.log
-cat /root/deploy-monitoring-stack-130.log
-cat /root/deploy-reverse-proxy-stack-140.log
-cat /root/deploy-management-stack-150.log
-cat /root/deploy-security-stack-160.log
-```
-
-To view only the end of a log:
-
-```bash
-tail -n 80 /root/deploy-media-lxc-120.log
-```
-
-If you changed `CTID`, the log filename will use that CTID.
-
-### 9. Check container status
-
-After deployment, check the Docker containers with:
-
-```bash
-pct exec 120 -- bash -lc 'cd /opt/media-stack && docker compose ps'
-```
-
-For the utility stacks:
-
-```bash
-pct exec 130 -- bash -lc 'cd /opt/monitoring-stack && docker compose ps'
-pct exec 140 -- bash -lc 'cd /opt/reverse-proxy-stack && docker compose ps'
-pct exec 150 -- bash -lc 'cd /opt/management-stack && docker compose ps'
-pct exec 160 -- bash -lc 'cd /opt/security-stack && docker compose ps'
-```
-
-View recent app logs:
-
-```bash
-pct exec 120 -- bash -lc 'cd /opt/media-stack && docker compose logs --tail=100'
-```
-
-If you changed `CTID`, replace `120` with your container ID.
+If your IPs differ, edit `homepage-services.yaml` before installing it.
 
 ## Default web ports
 
@@ -267,6 +234,24 @@ If you changed `CTID`, replace `120` with your container ID.
 | Security | AdGuard Home DNS | 53 |
 | Security | Vaultwarden | 11001 |
 | Security | Pi-hole, optional | 8084 |
+
+## Container status checks
+
+```bash
+pct list
+
+pct exec 120 -- bash -lc 'cd /opt/media-stack && docker compose ps'
+pct exec 130 -- bash -lc 'cd /opt/monitoring-stack && docker compose ps'
+pct exec 140 -- bash -lc 'cd /opt/reverse-proxy-stack && docker compose ps'
+pct exec 150 -- bash -lc 'cd /opt/management-stack && docker compose ps'
+pct exec 160 -- bash -lc 'cd /opt/security-stack && docker compose ps'
+```
+
+View recent logs:
+
+```bash
+pct exec 120 -- bash -lc 'cd /opt/media-stack && docker compose logs --tail=100'
+```
 
 ## Notes about specific utility apps
 
@@ -316,25 +301,29 @@ Then open:
 http://YOUR-LXC-IP:5055
 ```
 
-If you changed `CTID`, replace `120` with your container ID.
+### Homepage does not show the new services
 
-## Removing a failed test container
+Run:
 
-If a test run fails and you want to start clean, remove the container with:
+```bash
+pct exec 130 -- bash -lc 'ls -lah /opt/monitoring-stack/config/homepage/services.yaml'
+pct exec 130 -- bash -lc 'cd /opt/monitoring-stack && docker compose logs --tail=100 homepage'
+```
+
+Then reinstall the bundled services file:
+
+```bash
+./install-homepage-services.sh
+```
+
+## Removing failed test containers
 
 ```bash
 pct destroy 120 --purge
-```
-
-For the utility stacks:
-
-```bash
 pct destroy 130 --purge
 pct destroy 140 --purge
 pct destroy 150 --purge
 pct destroy 160 --purge
 ```
-
-Then rerun the script.
 
 If you changed `CTID`, replace the number with your container ID.
