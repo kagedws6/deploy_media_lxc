@@ -1,0 +1,90 @@
+---
+- Media:
+    - Sonarr:
+        href: http://192.168.1.254:8989
+        description: TV series automation
+        icon: sonarr.png
+    - Radarr:
+        href: http://192.168.1.254:7878
+        description: Movie automation
+        icon: radarr.png
+    - Prowlarr:
+        href: http://192.168.1.254:9696
+        description: Indexer manager
+        icon: prowlarr.png
+    - SABnzbd:
+        href: http://192.168.1.254:8080
+        description: Usenet downloader
+        icon: sabnzbd.png
+    - Seerr:
+        href: http://192.168.1.254:5055
+        description: Media requests
+        icon: overseerr.png
+    - Lidarr:
+        href: http://192.168.1.254:8686
+        description: Music automation
+        icon: lidarr.png
+    - Bazarr:
+        href: http://192.168.1.254:6767
+        description: Subtitle automation
+        icon: bazarr.png
+
+- Books and Audio:
+    - LazyLibrarian:
+        href: http://192.168.1.254:5299
+        description: Book and author automation
+        icon: lazylibrarian.png
+    - Kavita:
+        href: http://192.168.1.254:5000
+        description: Ebook, comic, and manga reader
+        icon: kavita.png
+    - Audiobookshelf:
+        href: http://192.168.1.254:13378
+        description: Audiobook and podcast server
+        icon: audiobookshelf.png
+
+- Monitoring:
+    - Uptime Kuma:
+        href: http://192.168.1.184:3001
+        description: Uptime and service monitoring
+        icon: uptime-kuma.png
+    - Tautulli:
+        href: http://192.168.1.184:8181
+        description: Plex monitoring and analytics
+        icon: tautulli.png
+    - Homepage:
+        href: http://192.168.1.184:3000
+        description: Homelab dashboard
+        icon: homepage.png
+
+- Network:
+    - Nginx Proxy Manager:
+        href: http://192.168.1.225:81
+        description: Reverse proxy management
+        icon: nginx-proxy-manager.png
+    - AdGuard Home:
+        href: http://192.168.1.245:8083
+        description: DNS filtering and ad blocking
+        icon: adguard-home.png
+
+- Management:
+    - Portainer:
+        href: https://192.168.1.208:9443
+        description: Docker management
+        icon: portainer.png
+    - Dozzle:
+        href: http://192.168.1.208:8088
+        description: Docker log viewer
+        icon: dozzle.png
+
+- Security:
+    - Vaultwarden:
+        href: http://192.168.1.245:11001
+        description: Password vault
+        icon: vaultwarden.png
+
+- Infrastructure:
+    - Proxmox:
+        href: https://192.168.1.102:8006
+        description: Proxmox host
+        icon: proxmox.png
