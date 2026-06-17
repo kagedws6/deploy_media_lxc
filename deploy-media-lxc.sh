@@ -545,6 +545,14 @@ if is_enabled "$ENABLE_AUTOBRR"; then
   add_url_note "Autobrr" "7474"
 fi
 
+# Some images do not honor PUID/PGID and need their config directory
+# prepared explicitly before first start. Seerr is the known picky one.
+if is_enabled "$ENABLE_SEERR"; then
+  echo
+  echo "=== Fixing Seerr config permissions ==="
+  pct exec "$CTID" -- bash -lc "mkdir -p '${STACK_PATH}/config/seerr' && chown -R 1000:1000 '${STACK_PATH}/config/seerr'"
+fi
+
 echo
 echo "=== Generated Compose file ==="
 pct exec "$CTID" -- bash -lc "cat '${STACK_PATH}/compose.yml'"
